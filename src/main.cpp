@@ -4,6 +4,7 @@
 
 #include "c2d.h"
 #include "main.h"
+#include "filer.h"
 
 #include "../libcross2d/res/default.h"
 
@@ -12,12 +13,14 @@ using namespace c2d;
 Renderer *renderer;
 Font *font;
 Io *io;
+Filer *filer;
+c2d::C2DClock timer;
 
 int main() {
 
     // create main renderer
     renderer = new C2DRenderer(Vector2f(SCR_W, SCR_H));
-    renderer->setFillColor(Color::GrayLight);
+    renderer->setFillColor(Color::Gray);
 
     // create a font
     font = new Font();
@@ -29,6 +32,7 @@ int main() {
     // create input
     Input *input = new C2DInput(NULL);
     input->setJoystickMapping(0, KEYS, 0);
+    input->setKeyboardMapping(KEYBOARD_KEYS);
 
     // create a rect
     Rectangle *rect = new C2DRectangle(Vector2f(renderer->getSize().x - 4, renderer->getSize().y - 4));
@@ -37,27 +41,63 @@ int main() {
     rect->setOutlineColor(Color::Orange);
     rect->setOutlineThickness(2);
 
+    filer = new Filer(io, "/", *font, FONT_SIZE,
+                      FloatRect(rect->getPosition().x + 32, rect->getPosition().y + 32,
+                                (rect->getSize().x / 2) - 16, rect->getSize().y - 64));
+    rect->add(filer);
+
     // add all this crap to the renderer
     renderer->add(rect);
+    renderer->flip();
 
     while (true) {
 
         // handle input
         unsigned int key = input->update()[0].state;
-        if (key) {
-            printf("input[0]: 0x%08X\n", key);
-            //input->clear(0);
-            if (key & Input::Key::KEY_FIRE2) {
+        if (key > 0) {
+
+            if (key & EV_QUIT) { // SDL2 quit event
                 break;
             }
-        }
 
-        renderer->flip();
+            if (key & Input::Key::KEY_FIRE2) {
+                // TODO: ask confirmation to exit
+                //break;
+            }
+
+            if (key & Input::Key::KEY_UP) {
+                filer->up();
+            } else if (key & Input::Key::KEY_DOWN) {
+                filer->down();
+            } else if (key & Input::Key::KEY_RIGHT) {
+                filer->right();
+            } else if (key & Input::Key::KEY_LEFT) {
+                filer->left();
+            } else if (key & Input::Key::KEY_FIRE1) {
+                filer->enter();
+            } else if (key & Input::Key::KEY_FIRE2) {
+                filer->exit();
+            }
+
+            renderer->flip();
+
+            if (timer.getElapsedTime().asSeconds() > 12) {
+                renderer->delay(INPUT_DELAY / 8);
+            } else if (timer.getElapsedTime().asSeconds() > 6) {
+                renderer->delay(INPUT_DELAY / 5);
+            } else if (timer.getElapsedTime().asSeconds() > 2) {
+                renderer->delay(INPUT_DELAY / 2);
+            } else {
+                renderer->delay(INPUT_DELAY);
+            }
+        } else {
+            timer.restart();
+        }
     }
 
-    // will delete widgets recursively
     delete (io);
     delete (font);
+    // will delete widgets recursively
     delete (renderer);
 
     return 0;

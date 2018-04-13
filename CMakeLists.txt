@@ -4,12 +4,12 @@ cmake_minimum_required(VERSION 3.0)
 # delete cmake cache folder before changing this option
 set(BUILD_SDL1 OFF CACHE BOOL "Build with SDL1 support (software, osmesa) support")
 set(BUILD_SDL1_GL OFF CACHE BOOL "Build with SDL1 support (hardware rendering, fast, needs BUILD_SDL1=ON)")
-set(BUILD_SDL2 OFF CACHE BOOL "Build with SDL2 (software) support")
-set(BUILD_SDL2_GL OFF CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
+set(BUILD_SDL2 ON CACHE BOOL "Build with SDL2 (software) support")
+set(BUILD_SDL2_GL ON CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
 set(BUILD_PSP2 OFF CACHE BOOL "Build with PSP2 support")
 set(BUILD_PS3 OFF CACHE BOOL "Build with PS3 support")
 set(BUILD_3DS OFF CACHE BOOL "Build with 3DS support")
-set(BUILD_NX ON CACHE BOOL "Build with NX (SWITCH) support")
+set(BUILD_NX OFF CACHE BOOL "Build with NX (SWITCH) support")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(BUILD_DEBUG true CACHE BOOL "Debug build")
@@ -17,7 +17,6 @@ endif ()
 
 # setup toolchain
 include(libcross2d/Toolchain.cmake)
-enable_language(ASM)
 
 execute_process(COMMAND "date" "+%Y.%m.%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -25,7 +24,7 @@ execute_process(COMMAND "date" "+%Y.%m.%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STR
 # you should (may) only need to port this library.
 add_subdirectory(libcross2d)
 
-project(nxfiler)
+project(nxFiler)
 
 set(NXFILER_DIRS src)
 file(GLOB NXFILER_SRC src/*.cpp)

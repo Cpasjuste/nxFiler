@@ -6,26 +6,102 @@
 
 using namespace c2d;
 
-extern Io *io;
+static bool endWith(std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
 
-Filer::Filer(const std::string &path, c2d::Io *io,
-             const Font &font, int fontSize, const FloatRect &rect,
-             const std::vector<Io::File *> &fileList) : ListBox(font, fontSize, rect, fileList) {
+Filer::Filer(c2d::Io *io, const std::string &path,
+             const c2d::Font &font, int fontSize, const c2d::FloatRect &rect)
+        : ListBox(font, fontSize, rect, NULL) {
 
     this->io = io;
     this->path = path;
 
-    std::vector<std::string> f = io->getDirList(this->path.c_str());
-    for (size_t i = 0; i < f.size(); i++) {
+    getDir(path);
+}
 
-        Io::File *file = new Io::File();
-        //strncpy(file->path, )
-        //file->path = this->path + f[i];
-        files.push_back(file);
+bool Filer::getDir(const std::string &path) {
+
+    if (!io->exist(path) || io->getType(path) != C2D_IO_DIR) {
+        return false;
+    }
+
+    printf("getDir(%s)\n", path.c_str());
+
+    this->path = path;
+    index = 0;
+    _files = io->getDirList(path);
+    setFiles(&_files);
+    setSelection(0);
+
+    return true;
+}
+
+std::string Filer::getPath() {
+    return path;
+}
+
+void Filer::down() {
+    index++;
+    if (index >= (int) getFiles()->size()) {
+        index = 0;
+    }
+    setSelection(index);
+}
+
+void Filer::up() {
+    index--;
+    if (index < 0)
+        index = (int) (getFiles()->size() - 1);
+    setSelection(index);
+}
+
+void Filer::left() {
+    index -= getMaxLines();
+    if (index < 0)
+        index = 0;
+    setSelection(index);
+}
+
+void Filer::right() {
+    index += getMaxLines();
+    if (index >= (int) getFiles()->size())
+        index = (int) (getFiles()->size() - 1);
+    setSelection(index);
+}
+
+void Filer::enter() {
+
+    // TODO: manually handle ".."2
+
+    if (path == "/") {
+        getDir(path + getSelection()->name);
+    } else {
+        getDir(path + "/" + getSelection()->name);
     }
 }
 
-Filer::~Filer() {
+void Filer::exit() {
 
+    if (path == "/" || path.find('/') == std::string::npos) {
+        return;
+    }
+
+    while (path.back() != '/') {
+        path.erase(path.size() - 1);
+    }
+
+    if (path.size() > 1 && endWith(path, "/")) {
+        path.erase(path.size() - 1);
+    }
+
+    getDir(path);
+}
+
+Filer::~Filer() {
 
 }

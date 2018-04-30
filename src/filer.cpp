@@ -6,20 +6,16 @@
 
 using namespace c2d;
 
-static bool endWith(std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
-}
-
 Filer::Filer(c2d::Io *io, const std::string &path,
              const c2d::Font &font, int fontSize, const c2d::FloatRect &rect)
-        : ListBox(font, fontSize, rect, NULL) {
+        : Rectangle(rect) {
 
     this->io = io;
     this->path = path;
+    this->setFillColor(Color::Transparent);
+
+    listBox = new ListBox(font, fontSize, rect, NULL);
+    this->add(listBox);
 
     getDir(path);
 }
@@ -35,8 +31,8 @@ bool Filer::getDir(const std::string &path) {
     this->path = path;
     index = 0;
     _files = io->getDirList(path);
-    setFiles(&_files);
-    setSelection(0);
+    listBox->setFiles(&_files);
+    listBox->setSelection(0);
 
     return true;
 }
@@ -47,41 +43,44 @@ std::string Filer::getPath() {
 
 void Filer::down() {
     index++;
-    if (index >= (int) getFiles()->size()) {
+    if (index >= (int) listBox->getFiles()->size()) {
         index = 0;
     }
-    setSelection(index);
+    listBox->setSelection(index);
 }
 
 void Filer::up() {
     index--;
     if (index < 0)
-        index = (int) (getFiles()->size() - 1);
-    setSelection(index);
+        index = (int) (listBox->getFiles()->size() - 1);
+    listBox->setSelection(index);
 }
 
 void Filer::left() {
-    index -= getMaxLines();
+    index -= listBox->getMaxLines();
     if (index < 0)
         index = 0;
-    setSelection(index);
+    listBox->setSelection(index);
 }
 
 void Filer::right() {
-    index += getMaxLines();
-    if (index >= (int) getFiles()->size())
-        index = (int) (getFiles()->size() - 1);
-    setSelection(index);
+    index += listBox->getMaxLines();
+    if (index >= (int) listBox->getFiles()->size())
+        index = (int) (listBox->getFiles()->size() - 1);
+    listBox->setSelection(index);
 }
 
 void Filer::enter() {
 
-    // TODO: manually handle ".."2
+    if (listBox->getSelection()->name == "..") {
+        exit();
+        return;
+    }
 
     if (path == "/") {
-        getDir(path + getSelection()->name);
+        getDir(path + listBox->getSelection()->name);
     } else {
-        getDir(path + "/" + getSelection()->name);
+        getDir(path + "/" + listBox->getSelection()->name);
     }
 }
 
@@ -100,6 +99,14 @@ void Filer::exit() {
     }
 
     getDir(path);
+}
+
+bool Filer::endWith(std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
 }
 
 Filer::~Filer() {

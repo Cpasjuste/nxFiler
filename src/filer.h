@@ -7,7 +7,7 @@
 
 #include <c2d.h>
 
-class Filer : public c2d::ListBox {
+class Filer : public c2d::Rectangle {
 
 public:
 
@@ -37,7 +37,10 @@ private:
     std::string path;
     std::vector<c2d::Io::File> _files;
     c2d::Io *io;
+    c2d::ListBox *listBox;
     int index = 0;
+
+    bool endWith(std::string const &fullString, std::string const &ending);
 };
 
 #endif //NXFILER_FILER_H

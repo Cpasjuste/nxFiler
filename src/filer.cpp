@@ -14,8 +14,22 @@ Filer::Filer(c2d::Io *io, const std::string &path,
     this->path = path;
     this->setFillColor(Color::Transparent);
 
-    listBox = new ListBox(font, fontSize, rect, NULL);
-    this->add(listBox);
+    // create current path box
+    pathRect = new C2DRectangle(FloatRect(0, 0, rect.width, 32));
+    pathRect->setFillColor(Color::GrayLight);
+    pathRect->setOutlineColor(Color::Orange);
+    pathRect->setOutlineThickness(2);
+    pathText = new C2DText("CURRENT PATH: /", font, (unsigned int) fontSize);
+    pathText->setOutlineThickness(2);
+    pathText->setPosition(4, pathRect->getSize().y / 2);
+    pathText->setOrigin(0, pathText->getLocalBounds().height / 2);
+    pathText->setSizeMax(rect.width - 8, 0);
+    pathRect->add(pathText);
+    add(pathRect);
+
+    FloatRect listBoxRect = {0, 32, rect.width, rect.height - 32};
+    listBox = new ListBox(font, fontSize, listBoxRect, NULL);
+    add(listBox);
 
     getDir(path);
 }
@@ -30,9 +44,13 @@ bool Filer::getDir(const std::string &path) {
 
     this->path = path;
     index = 0;
-    _files = io->getDirList(path);
-    listBox->setFiles(&_files);
+    files = io->getDirList(path);
+    listBox->setFiles(&files);
     listBox->setSelection(0);
+
+    pathText->setString(this->path);
+    //pathText->setPosition(4, pathRect->getSize().y / 2);
+    //pathText->setOrigin(0, pathRect->getSize().y / 2);
 
     return true;
 }

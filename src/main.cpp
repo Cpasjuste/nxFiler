@@ -13,8 +13,11 @@ using namespace c2d;
 Renderer *renderer;
 Font *font;
 Io *io;
-Filer *filer;
-c2d::C2DClock timer;
+Input *input;
+Clock *timer;
+Filer *filer[2];
+
+int current_filer = FILER_LEFT;
 
 int main() {
 
@@ -30,9 +33,12 @@ int main() {
     io = new C2DIo();
 
     // create input
-    Input *input = new C2DInput(NULL);
+    input = new C2DInput();
     input->setJoystickMapping(0, KEYS, 0);
     input->setKeyboardMapping(KEYBOARD_KEYS);
+
+    // create a timer
+    timer = new C2DClock();
 
     // create a rect
     Rectangle *rect = new C2DRectangle(Vector2f(renderer->getSize().x - 4, renderer->getSize().y - 4));
@@ -41,10 +47,16 @@ int main() {
     rect->setOutlineColor(Color::Orange);
     rect->setOutlineThickness(2);
 
-    filer = new Filer(io, "/", *font, FONT_SIZE,
-                      FloatRect(rect->getPosition().x + 32, rect->getPosition().y + 32,
-                                (rect->getSize().x / 2) - 16, rect->getSize().y - 64));
-    rect->add(filer);
+    filer[FILER_LEFT] = new Filer(io, "/", *font, FONT_SIZE,
+                                  FloatRect(rect->getPosition().x + 16, rect->getPosition().y + 16,
+                                            (rect->getSize().x / 2) - 16, rect->getSize().y - 32));
+    rect->add(filer[FILER_LEFT]);
+
+    filer[FILER_RIGHT] = new Filer(io, "/", *font, FONT_SIZE,
+                                   FloatRect(rect->getPosition().x + 16 + (rect->getSize().x / 2),
+                                             rect->getPosition().y + 16,
+                                             (rect->getSize().x / 2) - 32, rect->getSize().y - 32));
+    rect->add(filer[FILER_RIGHT]);
 
     // add all this crap to the renderer
     renderer->add(rect);
@@ -65,36 +77,44 @@ int main() {
                 //break;
             }
 
+            if (key & Input::Key::KEY_FIRE5) {
+                current_filer = !current_filer;
+            } else if (key & Input::Key::KEY_FIRE6) {
+                current_filer = !current_filer;
+            }
+
             if (key & Input::Key::KEY_UP) {
-                filer->up();
+                filer[current_filer]->up();
             } else if (key & Input::Key::KEY_DOWN) {
-                filer->down();
+                filer[current_filer]->down();
             } else if (key & Input::Key::KEY_RIGHT) {
-                filer->right();
+                filer[current_filer]->right();
             } else if (key & Input::Key::KEY_LEFT) {
-                filer->left();
+                filer[current_filer]->left();
             } else if (key & Input::Key::KEY_FIRE1) {
-                filer->enter();
+                filer[current_filer]->enter();
             } else if (key & Input::Key::KEY_FIRE2) {
-                filer->exit();
+                filer[current_filer]->exit();
             }
 
             renderer->flip();
 
-            if (timer.getElapsedTime().asSeconds() > 12) {
+            if (timer->getElapsedTime().asSeconds() > 10) {
                 renderer->delay(INPUT_DELAY / 8);
-            } else if (timer.getElapsedTime().asSeconds() > 6) {
+            } else if (timer->getElapsedTime().asSeconds() > 6) {
                 renderer->delay(INPUT_DELAY / 5);
-            } else if (timer.getElapsedTime().asSeconds() > 2) {
+            } else if (timer->getElapsedTime().asSeconds() > 2) {
                 renderer->delay(INPUT_DELAY / 2);
             } else {
                 renderer->delay(INPUT_DELAY);
             }
         } else {
-            timer.restart();
+            timer->restart();
         }
     }
 
+    delete (timer);
+    delete (input);
     delete (io);
     delete (font);
     // will delete widgets recursively

@@ -35,9 +35,11 @@ public:
 private:
 
     std::string path;
-    std::vector<c2d::Io::File> _files;
+    std::vector<c2d::Io::File> files;
     c2d::Io *io;
     c2d::ListBox *listBox;
+    c2d::Rectangle *pathRect;
+    c2d::Text *pathText;
     int index = 0;
 
     bool endWith(std::string const &fullString, std::string const &ending);
